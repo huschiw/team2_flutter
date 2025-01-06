@@ -3,6 +3,7 @@ import 'sign_in_page.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'dart:io';
 import 'package:flutter_sound/flutter_sound.dart';
+// ignore: depend_on_referenced_packages
 import 'package:path_provider/path_provider.dart';
 import 'package:google_sign_in/google_sign_in.dart'; // นำเข้า Google Sign-In
 
@@ -40,10 +41,13 @@ class _PageSystemState extends State<PageSystem> {
   Future<void> _getUserInfo() async {
     try {
       GoogleSignInAccount? account = await _googleSignIn.currentUser;
+      if (account == null) {
+        account = await _googleSignIn.signIn(); // ให้ผู้ใช้ลงชื่อเข้าใช้หากยังไม่ได้ลงชื่อ
+      }
       if (account != null) {
         setState(() {
-          userName = account.displayName ?? "User"; // กำหนดชื่อผู้ใช้
-          userImage = account.photoUrl ?? ""; // กำหนดรูปโปรไฟล์
+          userName = account?.displayName ?? "User"; // กำหนดชื่อผู้ใช้
+          userImage = account?.photoUrl ?? ""; // กำหนดรูปโปรไฟล์
         });
       }
     } catch (error) {
@@ -99,7 +103,7 @@ class _PageSystemState extends State<PageSystem> {
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundImage: NetworkImage(userImage.isNotEmpty ? userImage : 'https://www.example.com/default_image.png'),
+              backgroundImage: NetworkImage(userImage.isNotEmpty ? userImage : 'assets/images/background.jpg'),
             ),
             const SizedBox(width: 10),
             Text(userName.isNotEmpty ? userName : 'User'), // ชื่อผู้ใช้
@@ -108,7 +112,8 @@ class _PageSystemState extends State<PageSystem> {
         actions: [
           IconButton(
             icon: const Icon(Icons.exit_to_app),
-            onPressed: () {
+            onPressed: () async {
+              await _googleSignIn.signOut(); // ล็อกเอาท์จาก Google Sign-In
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => SignInPage()),
