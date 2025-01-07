@@ -11,28 +11,25 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  String userName = ""; // ตัวแปรสำหรับเก็บชื่อผู้ใช้
-  String userImage = ""; // ตัวแปรสำหรับเก็บ URL ของรูปโปรไฟล์ผู้ใช้
+  String userName = "";
+  String userImage = "";
 
-  final GoogleSignIn _googleSignIn =
-      GoogleSignIn(); // ตัวแปรสำหรับ Google Sign-In
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   @override
   void initState() {
     super.initState();
-    _getUserInfo(); // เรียกฟังก์ชันเพื่อดึงข้อมูลผู้ใช้จาก Google
+    _getUserInfo();
   }
 
-  // ฟังก์ชันดึงข้อมูลผู้ใช้จาก Google
   Future<void> _getUserInfo() async {
     try {
       GoogleSignInAccount? account = _googleSignIn.currentUser;
-      account ??= await _googleSignIn
-            .signIn();
+      account ??= await _googleSignIn.signIn();
       if (account != null) {
         setState(() {
-          userName = account?.displayName ?? "User"; // กำหนดชื่อผู้ใช้
-          userImage = account?.photoUrl ?? ""; // กำหนดรูปโปรไฟล์
+          userName = account?.displayName ?? "User";
+          userImage = account?.photoUrl ?? "";
         });
       }
     } catch (error) {
@@ -44,7 +41,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Profile Page"),
+        title: const Text("Setting"),
       ),
       body: Center(
         child: Padding(
@@ -54,10 +51,26 @@ class _ProfilePageState extends State<ProfilePage> {
             children: [
               CircleAvatar(
                 radius: 80,
-                backgroundImage: NetworkImage(
-                  userImage.isNotEmpty
-                      ? userImage
-                      : 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fth.wikipedia.org%2Fwiki%2F%25E0%25B9%2582%25E0%25B8%2597%25E0%25B8%25A3%25E0%25B8%25A5%25E0%25B8%25A5%25E0%25B9%258C%25E0%25B9%2580%25E0%25B8%259F%25E0%25B8%258B&psig=AOvVaw2IEQ1a-stn-7_TLjt1BrO0&ust=1736263237246000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCPjEzd2y4YoDFQAAAAAdAAAAABAE',
+                backgroundColor: Colors.transparent,
+                child: Container(
+                  width: 160,
+                  height: 160,
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Color(0xFF6771EA),
+                      width: 4.0,
+                    ),
+                  ),
+                  child: CircleAvatar(
+                    radius: 76,
+                    backgroundImage: NetworkImage(
+                      userImage.isNotEmpty
+                          ? userImage
+                          : 'https://example.com/default-profile-image.png',
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -69,12 +82,68 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
               const SizedBox(height: 20),
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  SizedBox(
+                    width: 120,
+                    height: 80,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '0',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                        SizedBox(height: 5),
+                        Text(
+                          'Coin',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.normal,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    width: 120,
+                    height: 80,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '0',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                        SizedBox(height: 5),
+                        Text(
+                          'Sound',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.normal,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
-                  // ล็อกเอาท์จาก Google Sign-In
                   await _googleSignIn.signOut();
                   Navigator.pushReplacement(
-                    // ignore: use_build_context_synchronously
                     context,
                     MaterialPageRoute(builder: (context) => const SignInPage()),
                   );

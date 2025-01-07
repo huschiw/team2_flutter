@@ -29,7 +29,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        selectedItemColor: const Color(0xFF6771EA), // สีเมนูที่เลือก
+        selectedItemColor: const Color(0xFF454EC5), // สีเมนูที่เลือก
         unselectedItemColor: Colors.grey,          // สีเมนูที่ไม่ได้เลือก
         type: BottomNavigationBarType.fixed,
         items: const [

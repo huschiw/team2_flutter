@@ -48,7 +48,7 @@ class _LoginPageState extends State<SignInPage> {
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/background.jpg'),
+                image: AssetImage('assets/images/signInPageBG.jpg'),
                 fit: BoxFit.cover,
               ),
             ),
@@ -58,7 +58,7 @@ class _LoginPageState extends State<SignInPage> {
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
               width: MediaQuery.of(context).size.width * 0.8,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withOpacity(0.9),
                 borderRadius: BorderRadius.circular(16.0),
               ),
               child: Column(
@@ -75,7 +75,7 @@ class _LoginPageState extends State<SignInPage> {
                   const SizedBox(height: 24.0),
                   const TextField(
                     decoration: InputDecoration(
-                      labelText: 'Email',
+                      labelText: 'Username or Email',
                       border: OutlineInputBorder(),
                     ),
                   ),

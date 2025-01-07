@@ -13,10 +13,9 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = [
-    const Center(
-      child: Text(
-        'Home Page',
-        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+    Scaffold(
+      appBar: AppBar(
+        title: const Text("Home Page"),
       ),
     ),
     const SystemPage(),
@@ -25,6 +24,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return BottomNavBar(pages: _pages); // ใช้ BottomNavBar
+    return BottomNavBar(pages: _pages); // Use BottomNavBar
   }
 }
