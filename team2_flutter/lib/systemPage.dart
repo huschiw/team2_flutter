@@ -1,20 +1,20 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'sign_in_page.dart';
+import 'signInPage.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'dart:io';
-import 'package:flutter_sound/flutter_sound.dart';
 // ignore: depend_on_referenced_packages
 import 'package:path_provider/path_provider.dart';
 import 'package:google_sign_in/google_sign_in.dart'; // นำเข้า Google Sign-In
 
-class PageSystem extends StatefulWidget {
-  const PageSystem({super.key});
+class SystemPage extends StatefulWidget {
+  const SystemPage({super.key});
 
   @override
-  _PageSystemState createState() => _PageSystemState();
+  // ignore: library_private_types_in_public_api
+  _SystemPageState createState() => _SystemPageState();
 }
 
-class _PageSystemState extends State<PageSystem> {
+class _SystemPageState extends State<SystemPage> {
   String userName = ""; // ตัวแปรสำหรับเก็บชื่อผู้ใช้
   String userImage = ""; // ตัวแปรสำหรับเก็บ URL ของรูปโปรไฟล์ผู้ใช้
   String? selectedOption; // ตัวแปรสำหรับเก็บค่าของ radio ที่เลือก
@@ -40,10 +40,8 @@ class _PageSystemState extends State<PageSystem> {
   // ฟังก์ชันดึงข้อมูลผู้ใช้จาก Google
   Future<void> _getUserInfo() async {
     try {
-      GoogleSignInAccount? account = await _googleSignIn.currentUser;
-      if (account == null) {
-        account = await _googleSignIn.signIn(); // ให้ผู้ใช้ลงชื่อเข้าใช้หากยังไม่ได้ลงชื่อ
-      }
+      GoogleSignInAccount? account = _googleSignIn.currentUser;
+      account ??= await _googleSignIn.signIn();
       if (account != null) {
         setState(() {
           userName = account?.displayName ?? "User"; // กำหนดชื่อผู้ใช้
@@ -51,7 +49,9 @@ class _PageSystemState extends State<PageSystem> {
         });
       }
     } catch (error) {
-      print("Error getting user info: $error");
+      if (kDebugMode) {
+        print("Error getting user info: $error");
+      }
     }
   }
 
@@ -90,6 +90,7 @@ class _PageSystemState extends State<PageSystem> {
     await flutterTts.synthesizeToFile(text, filePath);
 
     // แสดงข้อความเมื่อสร้างไฟล์สำเร็จ
+    // ignore: use_build_context_synchronously
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('Saved MP3 to: $filePath'),
     ));
@@ -103,7 +104,7 @@ class _PageSystemState extends State<PageSystem> {
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundImage: NetworkImage(userImage.isNotEmpty ? userImage : 'assets/images/background.jpg'),
+              backgroundImage: NetworkImage(userImage.isNotEmpty ? userImage : 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fth.wikipedia.org%2Fwiki%2F%25E0%25B9%2582%25E0%25B8%2597%25E0%25B8%25A3%25E0%25B8%25A5%25E0%25B8%25A5%25E0%25B9%258C%25E0%25B9%2580%25E0%25B8%259F%25E0%25B8%258B&psig=AOvVaw2IEQ1a-stn-7_TLjt1BrO0&ust=1736263237246000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCPjEzd2y4YoDFQAAAAAdAAAAABAE'),
             ),
             const SizedBox(width: 10),
             Text(userName.isNotEmpty ? userName : 'User'), // ชื่อผู้ใช้
@@ -115,8 +116,9 @@ class _PageSystemState extends State<PageSystem> {
             onPressed: () async {
               await _googleSignIn.signOut(); // ล็อกเอาท์จาก Google Sign-In
               Navigator.pushReplacement(
+                // ignore: use_build_context_synchronously
                 context,
-                MaterialPageRoute(builder: (context) => SignInPage()),
+                MaterialPageRoute(builder: (context) => const SignInPage()),
               );
             },
           ),
