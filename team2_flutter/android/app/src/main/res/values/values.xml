@@ -1,0 +1,15 @@
+<resources>
+    <!-- Firebase options -->
+    <string name="firebase_app_id">1:931435812666:android:28cfe4c714629bcaf42203</string>
+    <string name="firebase_api_key">AIzaSyCEtoSC5u7nh73dgloOb7pDIm7W-3SmqP4</string>
+    <string name="firebase_database_url">https://flutter-662ed.firebaseio.com</string>
+    <string name="firebase_storage_bucket">flutter-662ed.appspot.com</string>
+    <string name="firebase_project_id">flutter-662ed</string>
+    <string name="firebase_messaging_sender_id">931435812666</string>
+    <string name="firebase_client_id">931435812666-gfijeor0gqafk3ob8n8o0umnpp9v18di.apps.googleusercontent.com</string>
+
+    <!-- Facebook App ID & Facebook Login URL Scheme & Facebook App Secret-->
+    <string name="facebook_app_id">1007361304485300</string>
+    <string name="fb_login_protocol_scheme">fb1007361304485300</string>
+    <string name="facebook_app_secret">2d202505cae8118f30c3aecd703baaff</string>
+</resources>

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // เพิ่มการใช้ Firebase
 import 'signInPage.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _ProfilePageState createState() => _ProfilePageState();
 }
 
@@ -24,13 +24,25 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _getUserInfo() async {
     try {
-      GoogleSignInAccount? account = _googleSignIn.currentUser;
-      account ??= await _googleSignIn.signIn();
-      if (account != null) {
+      // ตรวจสอบว่าเข้าสู่ระบบด้วย Google หรือ Firebase
+      User? firebaseUser = FirebaseAuth.instance.currentUser;
+
+      if (firebaseUser != null) {
+        // ถ้าเข้าสู่ระบบด้วย Firebase
         setState(() {
-          userName = account?.displayName ?? "User";
-          userImage = account?.photoUrl ?? "";
+          userName = firebaseUser.displayName ?? "User";
+          userImage = firebaseUser.photoURL ?? "";
         });
+      } else {
+        // ถ้าเข้าสู่ระบบด้วย Google Sign-In
+        GoogleSignInAccount? account = _googleSignIn.currentUser;
+        account ??= await _googleSignIn.signIn();
+        if (account != null) {
+          setState(() {
+            userName = account?.displayName ?? "User";
+            userImage = account?.photoUrl ?? "";
+          });
+        }
       }
     } catch (error) {
       print("Error getting user info: $error");
@@ -59,7 +71,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     color: Colors.transparent,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Color(0xFF6771EA),
+                      color: const Color(0xFF6771EA),
                       width: 4.0,
                     ),
                   ),
@@ -143,6 +155,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ElevatedButton(
                 onPressed: () async {
                   await _googleSignIn.signOut();
+                  await FirebaseAuth.instance.signOut(); // Sign out from Firebase too
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (context) => const SignInPage()),

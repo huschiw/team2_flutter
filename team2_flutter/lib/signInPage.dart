@@ -1,43 +1,144 @@
-//signInPage
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart'; // Import ไอคอน
-import 'package:google_sign_in/google_sign_in.dart'; // เพิ่มการล็อกอินด้วย Google
-import 'signUpPage.dart'; // นำเข้าไฟล์ SignUpPage
-import 'homePage.dart'; // นำเข้าไฟล์ HomePage
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'signUpPage.dart';
+import 'homePage.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _LoginPageState createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<SignInPage> {
   bool _isRememberMeChecked = false;
+  final TextEditingController _usernameOrEmailController =
+      TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // กำหนด Google Sign-In
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  //ล็อกอินด้วย email/username และ password
+  Future<void> _signInWithEmailAndPassword() async {
+    try {
+      final String usernameOrEmail = _usernameOrEmailController.text.trim();
+      final String password = _passwordController.text;
 
-  // ฟังก์ชันการล็อกอินด้วย Google
+      String email = usernameOrEmail;
+      if (!usernameOrEmail.contains('@')) {
+        final snapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .where('userName', isEqualTo: usernameOrEmail)
+            .limit(1)
+            .get();
+        if (snapshot.docs.isNotEmpty) {
+          email = snapshot.docs.first.get('email');
+        } else {
+          throw FirebaseAuthException(
+              code: 'user-not-found', message: 'Username not found');
+        }
+      }
+
+      // ตรวจสอบ email และ password ก่อนทำการล็อกอิน
+      print('Email: $email');
+      print('Password: $password');
+
+      await _auth.signInWithEmailAndPassword(email: email, password: password);
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    } catch (e) {
+      _showErrorDialog(e.toString());
+    }
+  }
+
+  //ล็อกอินด้วย google
   Future<void> _signInWithGoogle() async {
     try {
-      final GoogleSignInAccount? account = await _googleSignIn.signIn();
-      if (account != null) {
-        if (kDebugMode) {
-          print("Google Sign-In Successful");
-        }
-        // เปลี่ยนหน้าไปที่ SystemPage หลังจากล็อกอินสำเร็จ
-        Navigator.pushReplacement(
-          // ignore: use_build_context_synchronously
-          context,
-          MaterialPageRoute(builder: (context) => const HomePage()), // นำทางไปที่หน้า SystemPage
-        );
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        throw FirebaseAuthException(
+            code: 'sign-in-canceled', message: 'Google sign-in was canceled');
       }
-    } catch (error) {
-      print("Google Sign-In Failed: $error");
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      // Firebase Authentication จะจัดการการตรวจสอบโดยตรง
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // ใช้ credential ที่ได้ในการลงชื่อเข้าใช้ Firebase
+      await FirebaseAuth.instance.signInWithCredential(credential);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    } catch (e) {
+      _showErrorDialog(e.toString());
     }
+  }
+
+  //ล็อกอินด้วย facebook
+  Future<void> _signInWithFacebook() async {
+    try {
+      // เข้าสู่ระบบผ่าน Facebook
+      final LoginResult result = await FacebookAuth.instance.login();
+
+      if (result.status == LoginStatus.success) {
+        // รับ AccessToken จากผลลัพธ์
+        final AccessToken? accessToken = result.accessToken;
+
+        if (accessToken != null) {
+          // ใช้ tokenString ในการสร้าง credential
+          final OAuthCredential credential =
+              FacebookAuthProvider.credential(accessToken.tokenString);
+
+          // ลงชื่อเข้าใช้ Firebase ด้วย Facebook credential
+          await FirebaseAuth.instance.signInWithCredential(credential);
+
+          // ไปยังหน้า HomePage หลังจากล็อกอินสำเร็จ
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomePage()),
+          );
+        } else {
+          throw FirebaseAuthException(
+              code: 'access-token-null', message: 'Access token is null');
+        }
+      } else {
+        throw FirebaseAuthException(
+            code: 'sign-in-canceled', message: 'Facebook sign-in was canceled');
+      }
+    } catch (e) {
+      _showErrorDialog(e.toString());
+    }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -55,7 +156,8 @@ class _LoginPageState extends State<SignInPage> {
           ),
           Center(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
               width: MediaQuery.of(context).size.width * 0.8,
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.9),
@@ -73,16 +175,18 @@ class _LoginPageState extends State<SignInPage> {
                     ),
                   ),
                   const SizedBox(height: 24.0),
-                  const TextField(
-                    decoration: InputDecoration(
+                  TextField(
+                    controller: _usernameOrEmailController,
+                    decoration: const InputDecoration(
                       labelText: 'Username or Email',
                       border: OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 16.0),
-                  const TextField(
+                  TextField(
+                    controller: _passwordController,
                     obscureText: true,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Password',
                       border: OutlineInputBorder(),
                     ),
@@ -112,13 +216,7 @@ class _LoginPageState extends State<SignInPage> {
                   ),
                   const SizedBox(height: 16.0),
                   ElevatedButton(
-                    onPressed: () async {
-                      // เปลี่ยนหน้าไปที่ HomePage
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => const HomePage()), // นำทางไปที่หน้า HomePage
-                      );
-                    },
+                    onPressed: _signInWithEmailAndPassword,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12.0),
                       minimumSize: const Size(double.infinity, 40.0),
@@ -135,12 +233,13 @@ class _LoginPageState extends State<SignInPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton.icon(
-                        onPressed: () {
-                          // เพิ่มฟังก์ชัน Login ด้วย Facebook
-                        },
-                        icon: const Icon(Icons.facebook, color: Colors.white),
-                        label: const Text('Facebook',
-                        style: TextStyle(color: Colors.white),),
+                        onPressed: _signInWithFacebook,
+                        icon: const FaIcon(FontAwesomeIcons.facebook,
+                            color: Colors.white),
+                        label: const Text(
+                          'Facebook',
+                          style: TextStyle(color: Colors.white),
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                           shape: RoundedRectangleBorder(
@@ -149,10 +248,13 @@ class _LoginPageState extends State<SignInPage> {
                         ),
                       ),
                       ElevatedButton.icon(
-                        onPressed: _signInWithGoogle, // เรียกฟังก์ชัน Google Sign-In
-                        icon: const FaIcon(FontAwesomeIcons.google, color: Colors.white),
-                        label: const Text('Google',
-                        style: TextStyle(color: Colors.white),),
+                        onPressed: _signInWithGoogle,
+                        icon: const FaIcon(FontAwesomeIcons.google,
+                            color: Colors.white),
+                        label: const Text(
+                          'Google',
+                          style: TextStyle(color: Colors.white),
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,
                           shape: RoundedRectangleBorder(
@@ -165,10 +267,10 @@ class _LoginPageState extends State<SignInPage> {
                   const SizedBox(height: 16.0),
                   TextButton(
                     onPressed: () {
-                      // นำทางไปหน้า Register
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const SignUpPage()), // นำทางไปที่หน้า SignUpPage
+                        MaterialPageRoute(
+                            builder: (context) => const SignUpPage()),
                       );
                     },
                     child: const Text("Don't have an account? Register"),

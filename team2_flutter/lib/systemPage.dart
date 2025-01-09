@@ -2,51 +2,58 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'signInPage.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-// ignore: depend_on_referenced_packages
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:google_sign_in/google_sign_in.dart'; // นำเข้า Google Sign-In
 
 class SystemPage extends StatefulWidget {
   const SystemPage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _SystemPageState createState() => _SystemPageState();
 }
 
 class _SystemPageState extends State<SystemPage> {
-  String userName = ""; // ตัวแปรสำหรับเก็บชื่อผู้ใช้
-  String userImage = ""; // ตัวแปรสำหรับเก็บ URL ของรูปโปรไฟล์ผู้ใช้
-  String? selectedOption; // ตัวแปรสำหรับเก็บค่าของ radio ที่เลือก
-  final FlutterTts flutterTts = FlutterTts(); // ตัวแปรสำหรับ Flutter TTS
-  final TextEditingController textController = TextEditingController(); // คอนโทรลเลอร์สำหรับ TextField
+  String userName = ""; 
+  String userImage = ""; 
+  String? selectedOption;
+  final FlutterTts flutterTts = FlutterTts();
+  final TextEditingController textController = TextEditingController();
 
-  // รายชื่อสมมติที่ต้องการแสดง
   List<String> names = [
-    "น้องแข้งโต", // Option 1
-    "น้องล่ำบึก", // Option 2
-    "น้องสปาย", // Option 3
-    "น้องเจ๋ง" // Option 4
+    "น้องแข้งโต",
+    "น้องล่ำบึก",
+    "น้องสปาย",
+    "น้องเจ๋ง"
   ];
 
-  final GoogleSignIn _googleSignIn = GoogleSignIn(); // ตัวแปรสำหรับ Google Sign-In
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   void initState() {
     super.initState();
-    _getUserInfo(); // เรียกฟังก์ชันเพื่อดึงข้อมูลผู้ใช้จาก Google
+    _getUserInfo();
   }
 
-  // ฟังก์ชันดึงข้อมูลผู้ใช้จาก Google
+  // ฟังก์ชันดึงข้อมูลผู้ใช้จาก Google หรือ Firebase Authentication
   Future<void> _getUserInfo() async {
     try {
-      GoogleSignInAccount? account = _googleSignIn.currentUser;
-      account ??= await _googleSignIn.signIn();
-      if (account != null) {
+      GoogleSignInAccount? googleAccount = _googleSignIn.currentUser;
+      googleAccount ??= await _googleSignIn.signIn();
+      if (googleAccount != null) {
         setState(() {
-          userName = account?.displayName ?? "User"; // กำหนดชื่อผู้ใช้
-          userImage = account?.photoUrl ?? ""; // กำหนดรูปโปรไฟล์
+          userName = googleAccount?.displayName ?? "User";
+          userImage = googleAccount?.photoUrl ?? "";
         });
+      } else {
+        User? firebaseUser = _auth.currentUser;
+        if (firebaseUser != null) {
+          setState(() {
+            userName = firebaseUser.displayName ?? "User";
+            userImage = firebaseUser.photoURL ?? "";
+          });
+        }
       }
     } catch (error) {
       if (kDebugMode) {
@@ -55,24 +62,24 @@ class _SystemPageState extends State<SystemPage> {
     }
   }
 
-  // ฟังก์ชันการตั้งค่าเสียงต่าง ๆ สำหรับแต่ละ Option
+  // ฟังก์ชันการตั้งค่าเสียงสำหรับแต่ละ Option
   void _setVoiceForOption(String option) async {
     switch (option) {
       case 'Option 1':
         await flutterTts.setLanguage("th-TH");
-        await flutterTts.setPitch(1); // เสียงปกติ
+        await flutterTts.setPitch(1);
         break;
       case 'Option 2':
         await flutterTts.setLanguage("th-TH");
-        await flutterTts.setPitch(2); // เสียงสูงขึ้น
+        await flutterTts.setPitch(2);
         break;
       case 'Option 3':
         await flutterTts.setLanguage("th-TH");
-        await flutterTts.setPitch(0.2); // เสียงต่ำลง
+        await flutterTts.setPitch(0.2);
         break;
       case 'Option 4':
         await flutterTts.setLanguage("th-TH");
-        await flutterTts.setPitch(0.8); // เสียงต่ำลง
+        await flutterTts.setPitch(0.8);
         break;
       default:
         await flutterTts.setLanguage("th-TH");
@@ -85,55 +92,33 @@ class _SystemPageState extends State<SystemPage> {
   Future<void> _saveAsMp3(String text) async {
     final tempDir = await getTemporaryDirectory();
     final filePath = '${tempDir.path}/output.mp3';
-
-    // กำหนดไฟล์ output
     await flutterTts.synthesizeToFile(text, filePath);
 
-    // แสดงข้อความเมื่อสร้างไฟล์สำเร็จ
-    // ignore: use_build_context_synchronously
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text('Saved MP3 to: $filePath'),
     ));
   }
 
+  // ฟังก์ชันสำหรับล็อกเอาท์
+  Future<void> _signOut() async {
+    await _googleSignIn.signOut();
+    await _auth.signOut();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const SignInPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundImage: NetworkImage(userImage.isNotEmpty ? userImage : 'https://www.google.com/url?sa=i&url=https%3A%2F%2Fth.wikipedia.org%2Fwiki%2F%25E0%25B9%2582%25E0%25B8%2597%25E0%25B8%25A3%25E0%25B8%25A5%25E0%25B8%25A5%25E0%25B9%258C%25E0%25B9%2580%25E0%25B8%259F%25E0%25B8%258B&psig=AOvVaw2IEQ1a-stn-7_TLjt1BrO0&ust=1736263237246000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCPjEzd2y4YoDFQAAAAAdAAAAABAE'),
-            ),
-            const SizedBox(width: 10),
-            Text(userName.isNotEmpty ? userName : 'User'), // ชื่อผู้ใช้
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.exit_to_app),
-            onPressed: () async {
-              await _googleSignIn.signOut(); // ล็อกเอาท์จาก Google Sign-In
-              Navigator.pushReplacement(
-                // ignore: use_build_context_synchronously
-                context,
-                MaterialPageRoute(builder: (context) => const SignInPage()),
-              );
-            },
-          ),
-        ],
-      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
-                'Demo system page',
-                style: TextStyle(fontSize: 24),
-              ),
+              const Text('Demo system page', style: TextStyle(fontSize: 24)),
               const SizedBox(height: 20),
               TextField(
                 controller: textController,

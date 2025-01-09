@@ -1,12 +1,13 @@
-//bottomNacBar
+// bottomNavBar
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
 
 class BottomNavBar extends StatefulWidget {
   final List<Widget> pages;
+  final AppBar? appBar; // Make appBar nullable
 
-  const BottomNavBar({super.key, required this.pages});
+  const BottomNavBar({super.key, required this.pages, this.appBar}); // Use this.appBar
 
   @override
   // ignore: library_private_types_in_public_api
@@ -18,19 +19,20 @@ class _BottomNavBarState extends State<BottomNavBar> {
 
   void _onItemTapped(int index) {
     setState(() {
-      _selectedIndex = index; // อัปเดตสถานะเมื่อเลือกเมนู
+      _selectedIndex = index; // Update state when a menu is selected
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: widget.pages[_selectedIndex], // แสดงหน้าที่เลือก
+      appBar: widget.appBar, // Use the appBar variable here
+      body: widget.pages[_selectedIndex], // Show the selected page
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        selectedItemColor: const Color(0xFF454EC5), // สีเมนูที่เลือก
-        unselectedItemColor: Colors.grey,          // สีเมนูที่ไม่ได้เลือก
+        selectedItemColor: const Color(0xFF454EC5), // Color for selected menu
+        unselectedItemColor: Colors.grey,          // Color for unselected menu
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(

@@ -1,40 +1,72 @@
-//signUpPage
+// signUpPage.dart
+// ignore_for_file: file_names
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart'; // Import ไอคอน
-import 'package:google_sign_in/google_sign_in.dart'; // เพิ่มการล็อกอินด้วย Google
-import 'signInPage.dart'; // นำเข้าไฟล์ SignInPage
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'signInPage.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _SignUpPageState createState() => _SignUpPageState();
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-
-  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _userNameController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
-  // กำหนด Google Sign-In
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  // ฟังก์ชันการสมัครสมาชิกด้วย Google
+  // สถานะสำหรับรูปภาพโปรไฟล์
+  String? _profileImageUrl;
+
+  // URL รูปภาพเริ่มต้น
+  static const String defaultImageUrl =
+      "https://i.ebayimg.com/images/g/cQIAAOSwlpNkLfYC/s-l1600.webp";
+
+  // ลงทะเบียนด้วย Google
   Future<void> _signInWithGoogle() async {
     try {
       final GoogleSignInAccount? account = await _googleSignIn.signIn();
       if (account != null) {
+        // ดึงข้อมูลชื่อ, นามสกุล และรูปภาพจากบัญชี Google
+        String fullName = account.displayName ?? "Unknown User";
+        String email = account.email;
+
+        // แยกชื่อและนามสกุลจาก fullName
+        List<String> nameParts = fullName.split(' ');
+        String firstName = nameParts.isNotEmpty ? nameParts.first : "";
+        String lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : "";
+
+        // ตั้งค่า username เป็นชื่อ
+        String userName = "$firstName";
+
+        // เก็บข้อมูลลงใน TextFields
+        _userNameController.text = userName;
+        _firstNameController.text = firstName;
+        _lastNameController.text = lastName;
+        _emailController.text = email;
+
+        // เก็บ URL รูปภาพโปรไฟล์จาก Google
+        _profileImageUrl = account.photoUrl;
+
+        // บันทึกข้อมูลลง Firestore
+        _saveUserToFirestore(userName, firstName, lastName, email, _profileImageUrl, null);
+
         print("Google Sign-In Successful");
-        // เมื่อสมัครเสร็จแล้วไปหน้า SignInPage
-        Navigator.pushReplacement(
-          // ignore: use_build_context_synchronously
-          context,
-          MaterialPageRoute(builder: (context) => const SignInPage()), // นำทางไปที่หน้า SignInPage
-        );
+        print("Username: $userName");
+        print("First Name: $firstName");
+        print("Last Name: $lastName");
+        print("Email: $email");
+        print("Profile Image URL: $_profileImageUrl");
       }
     } catch (error) {
       if (kDebugMode) {
@@ -43,14 +75,41 @@ class _SignUpPageState extends State<SignUpPage> {
     }
   }
 
-  // ฟังก์ชันตรวจสอบและสมัครสมาชิก
+  // บันทึกข้อมูลผู้ใช้ลง Firestore
+  Future<void> _saveUserToFirestore(
+      String userName, String firstName, String lastName, String email, String? profileImageUrl, String? password) async {
+    try {
+      final userRef = FirebaseFirestore.instance.collection('users').doc(email);
+      await userRef.set({
+        'userName': userName,
+        'firstName': firstName,
+        'lastName': lastName,
+        'email': email,
+        'profileImageUrl': profileImageUrl ?? defaultImageUrl,
+        'password': password ?? "", // เพิ่มรหัสผ่านที่นี่
+      });
+
+      print("User data saved to Firestore.");
+    } catch (e) {
+      print("Error saving user data to Firestore: $e");
+    }
+  }
+
   void _signUp() {
-    String fullName = _fullNameController.text;
+    String userName = _userNameController.text;
+    String firstName = _firstNameController.text;
+    String lastName = _lastNameController.text;
     String email = _emailController.text;
     String password = _passwordController.text;
     String confirmPassword = _confirmPasswordController.text;
 
-    if (fullName.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+    // ตรวจสอบว่าทุกฟิลด์มีการกรอกหรือไม่
+    if (userName.isEmpty ||
+        firstName.isEmpty ||
+        lastName.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty) {
       _showAlertDialog("Please fill in all the fields.");
       return;
     }
@@ -60,14 +119,18 @@ class _SignUpPageState extends State<SignUpPage> {
       return;
     }
 
-    // ถ้าทุกอย่างถูกต้อง ให้ไปที่หน้า SignInPage
+    // ถ้าไม่ใช้ Google Sign-In, ให้ค่า _profileImageUrl เป็น URL ที่กำหนด
+    String? profileImageUrl = _profileImageUrl ?? defaultImageUrl;
+
+    // บันทึกข้อมูลผู้ใช้ลง Firestore รวมถึงรหัสผ่าน
+    _saveUserToFirestore(userName, firstName, lastName, email, profileImageUrl, password);
+
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const SignInPage()), // นำทางไปที่หน้า SignInPage
+      MaterialPageRoute(builder: (context) => const SignInPage()),
     );
   }
 
-  // ฟังก์ชันแสดง AlertDialog
   void _showAlertDialog(String message) {
     showDialog(
       context: context,
@@ -96,14 +159,15 @@ class _SignUpPageState extends State<SignUpPage> {
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/background.jpg'),
+                image: AssetImage('assets/images/signInPageBG.jpg'),
                 fit: BoxFit.cover,
               ),
             ),
           ),
           Center(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
               width: MediaQuery.of(context).size.width * 0.8,
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.8),
@@ -122,9 +186,25 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                   const SizedBox(height: 24.0),
                   TextField(
-                    controller: _fullNameController,
+                    controller: _userNameController,
                     decoration: const InputDecoration(
-                      labelText: 'Full Name',
+                      labelText: 'User Name',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
+                  TextField(
+                    controller: _firstNameController,
+                    decoration: const InputDecoration(
+                      labelText: 'First Name',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
+                  TextField(
+                    controller: _lastNameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Last Name',
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -156,7 +236,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                   const SizedBox(height: 16.0),
                   ElevatedButton(
-                    onPressed: _signUp, // เรียกฟังก์ชันสมัครสมาชิก
+                    onPressed: _signUp,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12.0),
                       minimumSize: const Size(double.infinity, 40.0),
@@ -172,11 +252,8 @@ class _SignUpPageState extends State<SignUpPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      // ปุ่ม Sign Up ด้วย Facebook
                       ElevatedButton.icon(
-                        onPressed: () {
-                          // ฟังก์ชันการสมัครสมาชิกด้วย Facebook
-                        },
+                        onPressed: () {},
                         icon: const Icon(Icons.facebook, color: Colors.white),
                         label: const Text(
                           'Facebook',
@@ -189,10 +266,10 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                         ),
                       ),
-                      // ปุ่ม Sign Up ด้วย Google
                       ElevatedButton.icon(
-                        onPressed: _signInWithGoogle, // เรียกฟังก์ชัน Google Sign-In
-                        icon: const FaIcon(FontAwesomeIcons.google, color: Colors.white),
+                        onPressed: _signInWithGoogle,
+                        icon: const FaIcon(FontAwesomeIcons.google,
+                            color: Colors.white),
                         label: const Text(
                           'Google',
                           style: TextStyle(color: Colors.white),

@@ -5,11 +5,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b9e9f416-2ce6-4d7f-82b4-0433edad179e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.vscode/settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/.vscode/settings.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/team2_flutter/android/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/team2_flutter/android/app/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/team2_flutter/android/app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/team2_flutter/android/app/src/main/AndroidManifest.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/team2_flutter/android/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/team2_flutter/android/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/team2_flutter/android/gradle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/team2_flutter/android/gradle.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/team2_flutter/lib/components/bottomNavBar.dart" beforeDir="false" afterPath="$PROJECT_DIR$/team2_flutter/lib/components/bottomNavBar.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/team2_flutter/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/team2_flutter/lib/main.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/team2_flutter/lib/profilePage.dart" beforeDir="false" afterPath="$PROJECT_DIR$/team2_flutter/lib/profilePage.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/team2_flutter/lib/signInPage.dart" beforeDir="false" afterPath="$PROJECT_DIR$/team2_flutter/lib/signInPage.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/team2_flutter/lib/signUpPage.dart" beforeDir="false" afterPath="$PROJECT_DIR$/team2_flutter/lib/signUpPage.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/team2_flutter/lib/systemPage.dart" beforeDir="false" afterPath="$PROJECT_DIR$/team2_flutter/lib/systemPage.dart" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/team2_flutter/linux/flutter/generated_plugin_registrant.cc" beforeDir="false" afterPath="$PROJECT_DIR$/team2_flutter/linux/flutter/generated_plugin_registrant.cc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/team2_flutter/linux/flutter/generated_plugins.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/team2_flutter/linux/flutter/generated_plugins.cmake" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/team2_flutter/macos/Flutter/GeneratedPluginRegistrant.swift" beforeDir="false" afterPath="$PROJECT_DIR$/team2_flutter/macos/Flutter/GeneratedPluginRegistrant.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/team2_flutter/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/team2_flutter/pubspec.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/team2_flutter/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/team2_flutter/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/team2_flutter/windows/flutter/generated_plugin_registrant.cc" beforeDir="false" afterPath="$PROJECT_DIR$/team2_flutter/windows/flutter/generated_plugin_registrant.cc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/team2_flutter/windows/flutter/generated_plugins.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/team2_flutter/windows/flutter/generated_plugins.cmake" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
